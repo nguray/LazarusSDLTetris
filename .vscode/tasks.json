@@ -1,0 +1,215 @@
+{
+    // Based on: https://gist.github.com/pakLebah/dab98067e9a388a3a8d2f5c0b44a7d3f#file-tasks-json
+    "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+            // task settings for files and folders, use full path for commands
+            "FPC_COMMAND": "fpc.exe",
+            "PROJECTFILE": "${relativeFile}",
+            "PROJECTBASE": "${fileBasenameNoExtension}",
+            "OUTPUT": ".build",
+            "DEBUG": ".build/debug",
+            "RELEASE": ".build/release",
+            "DEPLOY": ".build/deploy",
+            "EXTENSION": "",
+            "PROCESSOR": "-Px86_64",
+            "SYNTAX": "-Mobjfpc"
+        }
+    },
+    "tasks": [
+        {
+            "label": "fpc: Build Debug",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": "fpc.exe",
+            "args": [
+                "${relativeFile}",
+                "-Px86_64",
+                "-Mobjfpc",
+                "-CroOti",
+                "-O-",
+                "-g",
+                "-B",
+                "-v",
+                "-gw",
+                "-godwarfsets",
+                "-Fu${workspaceFolder}\\SDL"
+            ],
+            "presentation": {
+                "focus": true
+            },
+            "problemMatcher": {
+                "owner": "objectpascal",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "kind": "location",
+                    "regexp": "^(.*)\\((\\d.*),(\\d.*)\\) (Warning|Error|Fatal): (.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5,
+                    "loop": true
+                }
+            }
+        },
+        {
+            "label": "fpc: Build Release",
+            "type": "shell",
+            "group": "build",
+            "command": "${FPC_COMMAND}",
+            "args": [
+                "${PROJECTFILE}",
+                "${PROCESSOR}",
+                "${SYNTAX}",
+                "-CX",
+                "-O3",
+                "-XXs",
+                "-B",
+                "-v",
+                "-FE${RELEASE}",
+                "-FU${OUTPUT}"
+            ],
+            "presentation": {
+                "focus": true
+            },
+            "problemMatcher": {
+                "owner": "objectpascal",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "kind": "location",
+                    "regexp": "^(.*)\\((\\d.*),(\\d.*)\\) (Warning|Error|Fatal): (.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5,
+                    "loop": true
+                }
+            }
+        },
+        {
+            "label": "fpc: Syntax Check",
+            "type": "shell",
+            "group": "build",
+            "command": "${FPC_COMMAND}",
+            "args": [
+                "${PROJECTFILE}",
+                "${PROCESSOR}",
+                "${SYNTAX}",
+                "-Se99",
+                "-B",
+                "-v",
+                "-s",
+                "-FE${OUTPUT}",
+                "-FU${OUTPUT}"
+            ],
+            "presentation": {
+                "focus": true
+            },
+            "problemMatcher": {
+                "owner": "objectpascal",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "kind": "location",
+                    "regexp": "^(.*)\\((\\d.*),(\\d.*)\\) (Warning|Error|Fatal): (.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5,
+                    "loop": true
+                }
+            }
+        },
+        {
+            "label": "fpc: Run Code",
+            "type": "shell",
+            "group": "test",
+            "command": "instantfpc",
+            "args": [
+                "${PROJECTFILE}",
+                "-B"
+            ],
+            "presentation": {
+                "focus": true
+            },
+            "problemMatcher": {
+                "owner": "objectpascal",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceFolder}"
+                ],
+                "pattern": {
+                    "kind": "location",
+                    "regexp": "^(.*)\\((\\d.*),(\\d.*)\\) (Warning|Error|Fatal): (.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5,
+                    "loop": true
+                }
+            }
+        },
+        {
+            "label": "fpc: Execute Binary",
+            "type": "shell",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "command": "./${DEBUG}/${PROJECTBASE}",
+            "args": [],
+            "presentation": {
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "fpc: Create Build Folders",
+            "type": "shell",
+            "command": "echo",
+            "args": [
+                "${OUTPUT}",
+                "${DEBUG}",
+                "${RELEASE}",
+                "${DEPLOY}"
+            ],
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "fpc: Remove Build Files",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "-rf",
+                "${OUTPUT}/*.*",
+                "${DEBUG}/{,.[!.],..?}*",
+                "${RELEASE}/{,.[!.],..?}*",
+                "~/.cache/instantfpc/${PROJECTBASE}",
+                "~/.cache/instantfpc/${PROJECTBASE}.*"
+            ],
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

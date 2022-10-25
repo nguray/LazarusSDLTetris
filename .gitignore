@@ -1,0 +1,6 @@
+lib/*
+*.o
+*.exe
+backup/*
+highscores.txt
+
