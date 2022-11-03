@@ -11,11 +11,11 @@ uses
 
 const
 
-  SCREEN_WIDTH  = 440;
-  SCREEN_HEIGHT = 540;
+  SCREEN_WIDTH  = 480;
+  SCREEN_HEIGHT = 560;
   NB_ROWS = 20;
-  NB_COLUMNS = 10;
-  CELL_SIZE = Trunc(SCREEN_WIDTH/(NB_COLUMNS+9));
+  NB_COLUMNS = 12;
+  CELL_SIZE = Trunc(SCREEN_WIDTH/(NB_COLUMNS+7));
   TOP  = 10;
   LEFT = 10;
 
@@ -433,6 +433,8 @@ type
         sc := 300;
       4:
         sc := 1200;
+      else
+        sc := 2000;
     end;
     ComputeScore := sc;
   end;
@@ -919,7 +921,6 @@ type
             SDLK_SPACE:
               begin
                 Self.EmptyBag();
-                Self.ClearBoard();
                 Self.mode := PLAY;
                 Self.processEvent := @Self.ProcessEventPlay;
                 Self.curTetromino.Init(Self.nextTetromino.m_type,5,1);
