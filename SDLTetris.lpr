@@ -266,30 +266,35 @@ type
      productFileIn: TextFile;
      L : TStringlist;
   begin
-    assignFile(productFileIn, 'hightscores.txt');
-    try
-      L:=TStringlist.Create;
-      L.Delimiter := ';';
-      L.StrictDelimiter := true;
-      reset(productFileIn);
-      i := 0;
-      while not EOF(productFileIn) do
-      begin
-        hscore := THightScore(hightScores[i]);
-        i := i + 1;
-        readLn(productFileIn, strLine);
-        L.DelimitedText := strLine;
-        if L.Count>=2 then
-        begin
-          //WriteLn(L.Strings[0],'<>',L.Strings[1]);
-          hscore.m_name := L.Strings[0];
-          hscore.m_score := StrToInt(L.Strings[1]);
-        end;
+    If FileExists('hightscores.txt') Then
+       begin
 
-      end;
-    finally
-      closefile(productFileIn);
-    end;
+          assignFile(productFileIn, 'hightscores.txt');
+          try
+            L:=TStringlist.Create;
+            L.Delimiter := ';';
+            L.StrictDelimiter := true;
+            reset(productFileIn);
+            i := 0;
+            while not EOF(productFileIn) do
+            begin
+              hscore := THightScore(hightScores[i]);
+              i := i + 1;
+              readLn(productFileIn, strLine);
+              L.DelimitedText := strLine;
+              if L.Count>=2 then
+              begin
+                //WriteLn(L.Strings[0],'<>',L.Strings[1]);
+                hscore.m_name := L.Strings[0];
+                hscore.m_score := StrToInt(L.Strings[1]);
+              end;
+
+            end;
+          finally
+            closefile(productFileIn);
+          end;
+
+       end;
 
   end;
 

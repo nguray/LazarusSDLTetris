@@ -9,7 +9,8 @@
         <Filename Value="SDLTetris.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <CursorPos X="89" Y="56"/>
+        <TopLine Value="268"/>
+        <CursorPos X="10" Y="271"/>
         <UsageCount Value="59"/>
         <Loaded Value="True"/>
       </Unit>
@@ -63,10 +64,6 @@
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="249" Column="33" TopLine="235"/>
-      </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
         <Caret Line="106" Column="15" TopLine="98"/>
@@ -182,6 +179,10 @@
       <Position>
         <Filename Value="SDLTetris.lpr"/>
         <Caret Line="334" Column="12" TopLine="309"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="279" Column="43" TopLine="259"/>
       </Position>
     </JumpHistory>
     <RunParams>
