@@ -9,8 +9,8 @@
         <Filename Value="SDLTetris.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="268"/>
-        <CursorPos X="10" Y="271"/>
+        <TopLine Value="237"/>
+        <CursorPos X="33" Y="250"/>
         <UsageCount Value="59"/>
         <Loaded Value="True"/>
       </Unit>
