@@ -247,7 +247,7 @@ type
      strLine: string;
      hscore : THightScore;
   begin
-    f:= TFileStream.Create('hightscores.txt', fmCreate);
+    f:= TFileStream.Create('highscores.txt', fmCreate);
     for i := 0 to hightScores.Count-1 do
     begin
       hscore := THightScore(hightScores[i]);
@@ -266,10 +266,10 @@ type
      productFileIn: TextFile;
      L : TStringlist;
   begin
-    If FileExists('hightscores.txt') Then
+    If FileExists('highscores.txt') Then
        begin
 
-          assignFile(productFileIn, 'hightscores.txt');
+          assignFile(productFileIn, 'highscores.txt');
           try
             L:=TStringlist.Create;
             L.Delimiter := ';';
