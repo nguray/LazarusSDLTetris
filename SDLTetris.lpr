@@ -148,8 +148,8 @@ type
 
     Self.processEvent := @Self.ProcessEventStandBy;
 
-    Self.curTetromino := TShape.create(0,6,1);
-    Self.nextTetromino := TShape.create(0,6,1);
+    Self.curTetromino := TShape.create(1,6*CELL_SIZE,CELL_SIZE);
+    Self.nextTetromino := TShape.create(0,6*CELL_SIZE,CELL_SIZE);
 
     Self.GenerateNextTetromino();
 
@@ -416,9 +416,9 @@ type
           end;
     until Self.bag[iType]=0;
 
-    WriteLn('Essais : ',nbTry);
+    //WriteLn('Essais : ',nbTry);
 
-    Self.nextTetromino.Init(iType,NB_COLUMNS + 3,Trunc(NB_ROWS/2));
+    Self.nextTetromino.Init(iType,(NB_COLUMNS + 3)*CELL_SIZE,Trunc(NB_ROWS/2)*CELL_SIZE);
     //-- Flag as use type
     Self.bag[iType] := 1;
 
@@ -928,7 +928,7 @@ type
                 Self.EmptyBag();
                 Self.mode := PLAY;
                 Self.processEvent := @Self.ProcessEventPlay;
-                Self.curTetromino.Init(Self.nextTetromino.m_type,5,1);
+                Self.curTetromino.Init(Self.nextTetromino.m_type,5*CELL_SIZE,1*CELL_SIZE);
                 Self.GenerateNextTetromino();
               end;
           end;
@@ -1037,7 +1037,8 @@ var
 
   limit    : Integer;
   game     : TGame;
-
+  i        : Integer;
+  fMove    : Boolean;
 
 begin
 
@@ -1063,7 +1064,7 @@ begin
     Halt(0);
   end;
 
-  screen := SDL_CreateRenderer(window, -1, 0);
+  screen := SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED + SDL_RENDERER_PRESENTVSYNC);
 
   if screen = nil then
   begin
@@ -1160,42 +1161,45 @@ begin
         begin
 
           if game.fFastDown then
-            limit := 100
+            limit := 10
           else
-            limit := 800;
+            limit := 25;
 
           if (curTicks-ticks2)>limit then
           begin
 
             ticks2 := curTicks;
-            game.curTetromino.m_y += 1;
 
-            game.curTetromino.m_x += game.VeloH;
-            if game.curTetromino.IsInBoard()=false then
-              begin
-                game.curTetromino.m_x -= game.VeloH;
-              end
-            else
+            for i:= 0 to 2 do
+            begin
+
+              game.curTetromino.m_y += 1;
+              fMove := true;
               if game.curTetromino.HitGround(@game.board) then
+                 begin
+                      game.curTetromino.m_y -= 1;
+                      game.FreezeTetromino();
+                      game.curTetromino.Init(game.nextTetromino.m_type,5,1);
+                      game.GenerateNextTetromino();
+                      fMove := false;
+                 end
+              else
+              begin
+                  if game.curTetromino.IsOutBottomLimit() then
+                     begin
+                          game.curTetromino.m_y -= 1;
+                          game.FreezeTetromino();
+                          game.curTetromino.Init(game.nextTetromino.m_type,5,1);
+                          game.GenerateNextTetromino();
+                         fMove := false;
+                     end;
+              end;
+              if fMove then
                 begin
-                  game.curTetromino.m_x -= game.VeloH;
+
                 end;
 
-            if not game.curTetromino.IsInBoard() then
-              begin
-               game.curTetromino.m_y -= 1;
-               game.FreezeTetromino();
-               game.curTetromino.Init(game.nextTetromino.m_type,5,1);
-               game.GenerateNextTetromino();
-              end
-            else
-              if game.curTetromino.HitGround(@game.board) then
-                begin
-                  game.curTetromino.m_y -= 1;
-                  game.FreezeTetromino();
-                  game.curTetromino.Init(game.nextTetromino.m_type,5,1);
-                  game.GenerateNextTetromino();
-                end;
+            end;
 
           end;
 
