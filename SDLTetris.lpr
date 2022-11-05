@@ -99,9 +99,9 @@ type
     Procedure DrawStandby(screen: PSDL_Renderer);
 
     Procedure EraseFirstCompletedLine();
-    Function ComputeScore(nbL:Integer):Integer;
+    Function  ComputeScore(nbL:Integer):Integer;
     Procedure DrawScore(screen: PSDL_Renderer);
-    Function IsGameOver():boolean;
+    Function  IsGameOver():boolean;
     Procedure ClearBoard();
     Procedure ProcessEventStandBy(done : PSDL_bool);
     Procedure ProcessEventPlay(done : PSDL_bool);
@@ -841,7 +841,8 @@ type
 
   Procedure TGame.ProcessEventPlay(done : PSDL_bool);
   var
-    max_x,min_x,dx : integer;
+    max_x,min_x,dx : Integer;
+    backupX        : Integer;
   begin
     done^ := SDL_FALSE;
     case Self.event.type_ of
@@ -865,41 +866,44 @@ type
                 Self.VeloH := 1;
             SDLK_UP:
               begin
-                Self.curTetromino.RotateLeft();
-                if Self.curTetromino.HitGround(@Self.board) then
+                if Self.curTetromino.m_type<>0 then
                   begin
-                    //-- Undo Rotate
-                    Self.curTetromino.RotateRight();
-                  end
-                else
-                  if not Self.curTetromino.IsInBoard() then
-                    begin
-                      max_x := Self.curTetromino.MaxX();
-                      if max_x>=NB_COLUMNS then
+                    Self.curTetromino.RotateLeft();
+                    if Self.curTetromino.HitGround(@Self.board) then
+                      begin
+                        //-- Undo Rotate
+                        Self.curTetromino.RotateRight();
+                      end
+                    else
+                      if Self.curTetromino.IsOutRightLimit() then
                         begin
-                          dx := max_x - NB_COLUMNS+1;
-                          Self.curTetromino.m_x -= dx;
-                          if Self.curTetromino.HitGround(@Self.board) then
+                          backupX := Self.curTetromino.m_x;
+                          repeat
+                            Self.curTetromino.m_x -= 1
+                          until not Self.curTetromino.IsOutRightLimit();
+                          if  Self.curTetromino.HitGround(@Self.board) then
                             begin
-                              Self.curTetromino.m_x += dx;
+                              Self.curTetromino.m_x := backupX;
+                              //-- Undo Rotate
                               Self.curTetromino.RotateRight();
                             end;
                         end
                       else
-                        begin
-                          min_x := Self.curTetromino.MinX();
-                          if min_x<0 then
-                            begin
-                              dx := min_x;
-                              Self.curTetromino.m_x -= dx;
-                              if Self.curTetromino.HitGround(@Self.board) then
-                                begin
-                                  Self.curTetromino.m_x += dx;
-                                  Self.curTetromino.RotateRight();
-                                end;
-                            end;
-                        end;
-                    end;
+                        if Self.curTetromino.IsOutLeftLimit() then
+                          begin
+                            backupX := Self.curTetromino.m_x;
+                            repeat
+                              Self.curTetromino.m_x += 1
+                            until not Self.curTetromino.IsOutLeftLimit();
+                            if  Self.curTetromino.HitGround(@Self.board) then
+                              begin
+                                Self.curTetromino.m_x := backupX;
+                                //-- Undo Rotate
+                                Self.curTetromino.RotateRight();
+                              end;
+                          end;
+                  end;
+
               end;
             SDLK_DOWN:
               begin
@@ -1127,9 +1131,9 @@ begin
 
   Mix_PlayMusic(Music, -1);
 
-  //game.score := 1000;
 
   game := TGame.create();
+  //game.score := 1000;
 
   startTicksV := TimeStampToMSecs(DateTimeToTimeStamp (Now));
   ticks2 := startTicksV;
@@ -1149,7 +1153,7 @@ begin
         if game.idHightScore>=0 then
         begin
           done := SDL_FALSE;
-          game.SetHightScore(game.idHightScore,game.playerName,game.score);
+          game.InsertHightScore(game.idHightScore,game.playerName,game.score);
           game.score := 0;
           game.curTetromino.m_type := 0;
           game.mode := HIGHT_SCORES;
@@ -1166,7 +1170,7 @@ begin
 
       if (game.nbCompletedLines>0) then
          begin
-         if (curTicks-startTicksV)>100 then
+         if (curTicks-startTicksV)>200 then
            begin
              startTicksV := curTicks;
              game.nbCompletedLines -= 1;
@@ -1282,7 +1286,7 @@ begin
         begin
 
           if game.fFastDown then
-            limit := 15
+            limit := 10
           else
             limit := 25;
 
@@ -1349,8 +1353,7 @@ begin
               game.idHightScore := game.IsHightScore(game.score);
               if game.idHightScore>=0 then
                 begin
-
-                  game.SetHightScore(game.idHightScore,game.playerName,game.score);
+                  game.InsertHightScore(game.idHightScore,game.playerName,game.score);
                   game.score := 0;
                   game.mode := HIGHT_SCORES;
                   game.processEvent:=@game.ProcessEventHightScores;

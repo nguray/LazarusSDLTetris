@@ -9,9 +9,9 @@
         <Filename Value="SDLTetris.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="1221"/>
-        <CursorPos X="28" Y="1220"/>
-        <UsageCount Value="72"/>
+        <TopLine Value="1318"/>
+        <CursorPos X="87" Y="1356"/>
+        <UsageCount Value="75"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -19,16 +19,15 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
         <CursorPos X="15" Y="2"/>
-        <UsageCount Value="60"/>
+        <UsageCount Value="63"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="shape.inc"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="127"/>
-        <CursorPos X="31" Y="164"/>
-        <UsageCount Value="39"/>
+        <CursorPos X="51" Y="251"/>
+        <UsageCount Value="42"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -74,123 +73,123 @@
     <JumpHistory HistoryIndex="29">
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1187" TopLine="1170"/>
+        <Caret Line="293" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1204" TopLine="1170"/>
+        <Caret Line="294" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1197" TopLine="1170"/>
+        <Caret Line="295" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1181" TopLine="1170"/>
+        <Caret Line="296" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1182" TopLine="1170"/>
+        <Caret Line="299" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1184" TopLine="1170"/>
+        <Caret Line="300" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1185" TopLine="1170"/>
+        <Caret Line="290" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1187" TopLine="1170"/>
+        <Caret Line="292" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1204" TopLine="1170"/>
+        <Caret Line="293" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1181" TopLine="1170"/>
+        <Caret Line="294" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1182" TopLine="1170"/>
+        <Caret Line="295" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1184" TopLine="1170"/>
+        <Caret Line="296" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1185" TopLine="1170"/>
+        <Caret Line="299" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1187" TopLine="1170"/>
+        <Caret Line="300" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1188" TopLine="1170"/>
+        <Caret Line="290" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1195" TopLine="1170"/>
+        <Caret Line="292" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1181" TopLine="1170"/>
+        <Caret Line="293" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1182" TopLine="1170"/>
+        <Caret Line="294" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1184" TopLine="1170"/>
+        <Caret Line="295" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1185" TopLine="1170"/>
+        <Caret Line="296" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1187" TopLine="1170"/>
+        <Caret Line="299" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1195" Column="30" TopLine="1170"/>
+        <Caret Line="300" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1181" TopLine="1170"/>
+        <Caret Line="290" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1182" TopLine="1170"/>
+        <Caret Line="292" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1184" TopLine="1170"/>
+        <Caret Line="293" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1185" TopLine="1170"/>
+        <Caret Line="294" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1187" TopLine="1170"/>
+        <Caret Line="295" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1197" TopLine="1170"/>
+        <Caret Line="296" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1199" TopLine="1170"/>
+        <Caret Line="299" TopLine="264"/>
       </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1206" TopLine="1170"/>
+        <Caret Line="300" TopLine="264"/>
       </Position>
     </JumpHistory>
     <RunParams>

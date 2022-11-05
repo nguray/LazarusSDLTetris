@@ -237,7 +237,6 @@ type
        if (ix>=0) and (ix<NB_COLUMNS) and (iy>=0) and (iy<NB_ROWS) then
          begin
               Hit := board^[ix+iy*NB_COLUMNS]<>0;
-              Writeln(Hit);
          end
        else
          Hit := false;
@@ -255,7 +254,7 @@ type
           exit;
         end;
 
-        x := Self.v[i].x*CELL_SIZE + CELL_SIZE - 1 + Self.m_x;
+        x := Self.v[i].x*CELL_SIZE + CELL_SIZE - 2 + Self.m_x;
         y := Self.v[i].y*CELL_SIZE + Self.m_y + 1;
         if Hit(x,y) then
         begin
@@ -263,8 +262,8 @@ type
           exit;
         end;
 
-        x := Self.v[i].x*CELL_SIZE + CELL_SIZE - 1 + Self.m_x;
-        y := Self.v[i].y*CELL_SIZE + CELL_SIZE - 1 + Self.m_y;
+        x := Self.v[i].x*CELL_SIZE + CELL_SIZE - 2 + Self.m_x;
+        y := Self.v[i].y*CELL_SIZE + CELL_SIZE - 2 + Self.m_y;
         if Hit(x,y) then
         begin
           HitGround := true;
@@ -272,7 +271,7 @@ type
         end;
 
         x := Self.v[i].x*CELL_SIZE + Self.m_x + 1;
-        y := Self.v[i].y*CELL_SIZE + CELL_SIZE - 1 + Self.m_y;
+        y := Self.v[i].y*CELL_SIZE + CELL_SIZE - 2 + Self.m_y;
         if Hit(x,y) then
         begin
           HitGround := true;
