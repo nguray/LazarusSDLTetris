@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}
   cthreads,
   {$ENDIF}
-   fgl,classes,SysUtils,FileUtil,Graphics,SDL2,SDL2_ttf,SDL2_mixer
+   math,fgl,classes,SysUtils,FileUtil,Graphics,SDL2,SDL2_ttf,SDL2_mixer
   { you can add units after this };
 
 const
@@ -73,13 +73,15 @@ type
     veloH      : Integer;
     fFastDown  : Boolean;
     fPause     : Boolean;
+    fQuit      : Boolean;
     fDropTetromino : boolean;
     event          : TSDL_Event;
     processEvent   : TMethodPtr;
     curTetromino   : TShape;
     nextTetromino  : TShape;
     ttfFont : PTTF_Font;
-    bag     : Array [1..7] of Integer;
+    tetrisBag      : Array of Integer;
+    idTetrisBag  : Integer;
     hightScores  : TList;
     idHightScore : Integer;
 
@@ -88,8 +90,6 @@ type
     nbCompletedLines      : Integer;
 
     dictKeys : TDictKeys;
-
-    Sound: PMix_Chunk;
 
     Constructor Create();
     Destructor Free();
@@ -109,10 +109,6 @@ type
     Procedure ProcessEventHightScores(done : PSDL_bool);
     Procedure DrawGameOver(screen: PSDL_Renderer);
     Procedure DrawHightScores(screen: PSDL_Renderer);
-    Function  BagIsCompleted():boolean;
-    Procedure EmptyBag();
-    Function  GetFirstUnUsedType(): Integer;
-    Procedure GenerateNextTetromino();
     Procedure SaveHightScores();
     Procedure LoadHightScores();
     Function  IsHightScore(newscore : Integer) : Integer;
@@ -120,6 +116,8 @@ type
     Procedure SetHightScoreName(idScore : Integer; playerNm : String);
     Procedure InsertHightScore(idScore : Integer;playerNm : String;playerScore : Integer );
     Function  ComputeCompletedLines() : Integer;
+    Procedure NewTetromino();
+    function  TetrisRandomizer() : Integer;
 
   end;
 
@@ -149,6 +147,7 @@ type
     Self.idHightScore := -1;
     Self.score := 0;
     Self.mode  := STAND_BY;
+    Self.processEvent := @Self.ProcessEventStandBy;
     Self.veloH := 0;
     Self.horizontalMove := 0;
     Self.horizontalStartColumn := 0;
@@ -156,13 +155,12 @@ type
     Self.fPause := false;
     Self.fDropTetromino := false;
     Self.nbCompletedLines := 0;
+    Self.fQuit := false;
 
-    Self.processEvent := @Self.ProcessEventStandBy;
-
-    Self.curTetromino := TShape.create(1,6*CELL_SIZE,CELL_SIZE);
-    Self.nextTetromino := TShape.create(0,6*CELL_SIZE,CELL_SIZE);
-
-    Self.GenerateNextTetromino();
+    Self.idTetrisBag := 14;
+    Self.tetrisBag := [1,2,3,4,5,6,7,1,2,3,4,5,6,7];
+    Self.curTetromino := TShape.create(0,0,0);
+    Self.nextTetromino := TShape.create(Self.TetrisRandomizer(),(NB_COLUMNS+3)*CELL_SIZE,7*CELL_SIZE);
 
     Self.ClearBoard();
 
@@ -188,11 +186,6 @@ type
       TTF_SetFontStyle(Self.ttfFont, TTF_STYLE_BOLD or TTF_STYLE_ITALIC);
       TTF_SetFontHinting(Self.ttfFont, TTF_HINTING_NORMAL);
     end;
-
-    // Load sound
-    Sound := Mix_LoadWAV('109662__grunz__success.wav');
-    if Sound = nil then Exit;
-    Mix_VolumeChunk(Sound, 20);
 
     dictKeys := TDictKeys.Create;
     dictKeys[SDLK_a] := 'A';
@@ -248,7 +241,6 @@ type
   begin
     WriteLn('Class Destructor TGame');
     TTF_CloseFont(Self.ttfFont);
-    if Assigned(Self.Sound) then Mix_FreeChunk(Self.Sound);
   end;
 
   Procedure TGame.SaveHightScores();
@@ -366,72 +358,34 @@ type
 
   end;
 
-  Function TGame.BagIsCompleted():boolean;
+
+  function TGame.TetrisRandomizer() : Integer;
   var
-    i : Integer;
+    i     : Integer;
+    iSrc  : Integer;
+    iTyp  : Integer;
   begin
-    for i:=1 to 7 do
-    begin
-      if Self.bag[i]=0 then
+
+    if Self.idTetrisBag<14 then
       begin
-        BagIsCompleted := false;
-        Exit;
-      end;
-    end;
-    BagIsCompleted := true;
-  end;
-
-  Procedure TGame.EmptyBag();
-  var
-    i : Integer;
-  begin
-    for i:=1 to 7 do
-    begin
-      Self.bag[i] := 0;
-    end;
-  end;
-
-  Function TGame.GetFirstUnUsedType(): Integer;
-  var
-    i : Integer;
-  begin
-    for i:=1 to 7 do
-    begin
-      if Self.bag[i]=0 then
+        iTyp := Self.tetrisBag[Self.idTetrisBag];
+        Self.idTetrisBag += 1;
+      end
+    else
       begin
-        GetFirstUnUsedType := i;
-        Exit;
+        //-- Shuttle Bag
+        for i:=0 to 13 do
+        begin
+          iSrc := Random(14);
+          iTyp := Self.tetrisBag[iSrc];
+          Self.tetrisBag[iSrc] := Self.tetrisBag[0];
+          Self.tetrisBag[0] := iTyp;
+        end;
+        Self.idTetrisBag := 1;
+
       end;
-    end;
-    GetFirstUnUsedType := 0;
-  end;
 
-  Procedure TGame.GenerateNextTetromino();
-  var
-    nbTry : Integer = 0;
-    iType : Integer;
-  begin
-    if Self.BagIsCompleted() then
-    begin
-      Self.EmptyBag();
-    end;
-
-    //-- Look randomly for unuse type in bag
-    repeat
-          iType := Random(7)+1;
-          nbTry += 1;
-          if nbTry>9 then
-          begin
-            iType := Self.GetFirstUnUsedType();
-            break;
-          end;
-    until Self.bag[iType]=0;
-
-    //WriteLn('Essais : ',nbTry);
-
-    Self.nextTetromino.Init(iType,(NB_COLUMNS + 3)*CELL_SIZE,Trunc(NB_ROWS/2)*CELL_SIZE);
-    //-- Flag as use type
-    Self.bag[iType] := 1;
+    TetrisRandomizer := iTyp;
 
   end;
 
@@ -455,6 +409,12 @@ type
     ComputeScore := sc;
   end;
 
+  Procedure TGame.NewTetromino();
+  begin
+    Self.curTetromino.Init(Self.nextTetromino.m_Type,5*CELL_SIZE,0);
+    Self.curTetromino.m_y := -Self.curTetromino.MaxY()*CELL_SIZE;
+    Self.nextTetromino.Init(Self.TetrisRandomizer(),(NB_COLUMNS+3)*CELL_SIZE,7*CELL_SIZE);
+  end;
 
   Function TGame.ComputeCompletedLines() : Integer;
   var
@@ -481,9 +441,8 @@ type
 
   Procedure TGame.FreezeTetromino();
   var
-    i,x,y,nbL : Integer;
+    i,x,y     : Integer;
     ix,iy     : Integer;
-    strScore  : String = '';
   begin
     ix := Trunc((Self.curTetromino.m_x+1)/CELL_SIZE);
     iy := Trunc((Self.curTetromino.m_y+1)/CELL_SIZE);
@@ -491,16 +450,14 @@ type
     begin
       x := Self.curTetromino.v[i].x + ix;
       y := Self.curTetromino.v[i].y + iy;
-      Self.board[x+y*NB_COLUMNS] := Self.curTetromino.m_type;
+      if (x>=0) and (x<NB_COLUMNS) and (y>=0) and (y<NB_ROWS) then
+        begin
+          Self.board[x+y*NB_COLUMNS] := Self.curTetromino.m_type;
+        end;
     end;
     Self.nbCompletedLines := Self.ComputeCompletedLines();
     if Self.nbCompletedLines>0 then
-    begin
-      //WriteLn('Score  ',Self.score);
       Self.score += Self.ComputeScore(Self.nbCompletedLines);
-      //FmtStr(strScore,'SCORE : %10.8d',[Self.score]);
-      //WriteLn(strScore);
-    end;
 
   end;
 
@@ -782,9 +739,8 @@ type
   Procedure TGame.EraseFirstCompletedLine();
   var
     fCompleted : Boolean;
-    r,r1,c,nbL : Integer;
+    r,r1,c     : Integer;
   begin
-    nbL := 0;
     for r:=0 to NB_ROWS-1 do
     begin
       fCompleted := true;
@@ -841,7 +797,6 @@ type
 
   Procedure TGame.ProcessEventPlay(done : PSDL_bool);
   var
-    max_x,min_x,dx : Integer;
     backupX        : Integer;
   begin
     done^ := SDL_FALSE;
@@ -849,6 +804,7 @@ type
       SDL_QUITEV:
         begin
            done^ := SDL_TRUE;
+           Self.fQuit := true;
         end;
       SDL_KEYDOWN:
         begin
@@ -953,6 +909,7 @@ type
       SDL_QUITEV:
         begin
            done^ := SDL_TRUE;
+           Self.fQuit := true;
         end;
       SDL_KEYDOWN:
         begin
@@ -964,14 +921,13 @@ type
             SDLK_ESCAPE:
               begin
                 done^ := SDL_TRUE;
+                Self.fQuit:= true;
               end;
             SDLK_SPACE:
               begin
-                Self.EmptyBag();
                 Self.mode := PLAY;
                 Self.processEvent := @Self.ProcessEventPlay;
-                Self.curTetromino.Init(Self.nextTetromino.m_type,5*CELL_SIZE,1*CELL_SIZE);
-                Self.GenerateNextTetromino();
+                Self.NewTetromino();
               end;
           end;
 
@@ -987,6 +943,7 @@ type
       SDL_QUITEV:
         begin
            done^ := SDL_TRUE;
+           Self.fQuit := true;
         end;
       SDL_KEYDOWN:
         begin
@@ -998,9 +955,11 @@ type
             SDLK_ESCAPE:
               begin
                 done^ := SDL_TRUE;
+                Self.fQuit := true;
               end;
             SDLK_SPACE:
               begin
+                Self.curTetromino.m_Type := 0;
                 Self.ClearBoard();
                 Self.mode := STAND_BY;
                 Self.processEvent := @Self.ProcessEventStandBy;
@@ -1021,6 +980,7 @@ type
       SDL_QUITEV:
         begin
            done^ := SDL_TRUE;
+           Self.fQuit := true;
         end;
       SDL_KEYDOWN:
         begin
@@ -1037,6 +997,8 @@ type
               end;
             SDLK_ESCAPE:
               begin
+                Self.mode := STAND_BY;
+                Self.processEvent := @Self.ProcessEventStandBy;
                 //done^ := SDL_TRUE;
               end;
             SDLK_BACKSPACE:
@@ -1070,15 +1032,14 @@ var
   window: PSDL_Window = nil;
   screen: PSDL_Renderer = nil;
   Music : PMix_Music;
+  Sound: PMix_Chunk;
 
   done : TSDL_bool = SDL_FALSE;
 
   curTicks    : comp;
   startTicksV : comp;
   startTicksH : comp;
-  ticks2      : comp;
 
-  limit    : Integer;
   game     : TGame;
   i        : Integer;
   fMove    : Boolean;
@@ -1132,11 +1093,16 @@ begin
   Mix_PlayMusic(Music, -1);
 
 
+  // Load sound
+  Sound := Mix_LoadWAV('109662__grunz__success.wav');
+  if Sound = nil then Exit;
+  Mix_VolumeChunk(Sound, 20);
+
+
   game := TGame.create();
   //game.score := 1000;
 
   startTicksV := TimeStampToMSecs(DateTimeToTimeStamp (Now));
-  ticks2 := startTicksV;
   startTicksH := startTicksV;
 
   { Loop, getting joystick events! }
@@ -1146,20 +1112,33 @@ begin
     while SDL_PollEvent(@game.event) = 1 do
     begin
       game.processEvent(@done);
+
+      if game.fQuit then break;
+
       if done = SDL_TRUE then
       begin
         //-- Check Hight Score
         game.idHightScore := game.IsHightScore(game.score);
         if game.idHightScore>=0 then
-        begin
-          done := SDL_FALSE;
-          game.InsertHightScore(game.idHightScore,game.playerName,game.score);
-          game.score := 0;
-          game.curTetromino.m_type := 0;
-          game.mode := HIGHT_SCORES;
-          game.processEvent:=@game.ProcessEventHightScores;
-
-        end;
+          begin
+            done := SDL_FALSE;
+            game.InsertHightScore(game.idHightScore,game.playerName,game.score);
+            game.score := 0;
+            game.curTetromino.m_type := 0;
+            game.mode := HIGHT_SCORES;
+            game.processEvent:=@game.ProcessEventHightScores;
+            game.curTetromino.m_Type := 0;
+            game.ClearBoard();
+          end
+        else
+          begin
+            done := SDL_FALSE;
+            game.score := 0;
+            game.mode  := STAND_BY;
+            game.processEvent := @game.ProcessEventStandBy;
+            game.curTetromino.m_Type := 0;
+            game.ClearBoard();
+          end;
       end;
     end;
 
@@ -1175,7 +1154,7 @@ begin
              startTicksV := curTicks;
              game.nbCompletedLines -= 1;
              game.EraseFirstCompletedLine();
-             if Mix_PlayChannel(-1, game.Sound, 0) < 0 then Writeln(SDL_GetError);
+             if Mix_PlayChannel(-1, Sound, 0) < 0 then Writeln(SDL_GetError);
            end;
          end
       else if (game.horizontalMove<>0) then
@@ -1239,16 +1218,14 @@ begin
                        begin
                          game.curTetromino.m_y -= 1;
                          game.FreezeTetromino();
-                         game.curTetromino.Init(game.nextTetromino.m_type,6*CELL_SIZE,CELL_SIZE);
-                         game.GenerateNextTetromino();
+                         game.NewTetromino();
                          game.fDropTetromino := false;
                        end
                      else if game.curTetromino.IsOutBottomLimit() then
                        begin
                          game.curTetromino.m_y -= 1;
                          game.FreezeTetromino();
-                         game.curTetromino.Init(game.nextTetromino.m_type,6*CELL_SIZE,CELL_SIZE);
-                         game.GenerateNextTetromino();
+                         game.NewTetromino();
                          game.fDropTetromino := false;
                        end;
                      if game.fDropTetromino then
@@ -1285,13 +1262,7 @@ begin
       else
         begin
 
-          if game.fFastDown then
-            limit := 10
-          else
-            limit := 25;
-
-
-          if (curTicks-startTicksV)>limit then
+          if (curTicks-startTicksV)>IfThen(game.fFastDown,10,25) then
           begin
 
             startTicksV := curTicks;
@@ -1305,16 +1276,14 @@ begin
                    begin
                         game.curTetromino.m_y -= 1;
                         game.FreezeTetromino();
-                        game.curTetromino.Init(game.nextTetromino.m_type,6*CELL_SIZE,CELL_SIZE);
-                        game.GenerateNextTetromino();
+                        game.NewTetromino();
                         fMove := false;
                    end
                 else if game.curTetromino.IsOutBottomLimit() then
                    begin
                       game.curTetromino.m_y -= 1;
                       game.FreezeTetromino();
-                      game.curTetromino.Init(game.nextTetromino.m_type,6*CELL_SIZE,CELL_SIZE);
-                      game.GenerateNextTetromino();
+                      game.NewTetromino();
                       fMove := false;
                    end;
 
@@ -1357,13 +1326,14 @@ begin
                   game.score := 0;
                   game.mode := HIGHT_SCORES;
                   game.processEvent:=@game.ProcessEventHightScores;
-
+                  game.ClearBoard();
                 end
               else
                 begin
-                     game.curTetromino.m_type := 0;
-                     game.mode := GAME_OVER;
-                     game.processEvent:=@game.ProcessEventGameOver;
+                  game.curTetromino.m_type := 0;
+                  game.mode := GAME_OVER;
+                  game.processEvent:=@game.ProcessEventGameOver;
+                  game.ClearBoard();
                 end;
             end;
 
@@ -1409,6 +1379,8 @@ begin
   if Assigned(window) then SDL_DestroyWindow(window);
 
   if Assigned(Music) then Mix_FreeMusic(Music);
+
+  if Assigned(Sound) then Mix_FreeChunk(Sound);
 
   TTF_Quit();
 
