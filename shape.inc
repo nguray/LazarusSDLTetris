@@ -18,6 +18,7 @@ type
     Function  IsOutLeftLimit() : Boolean;
     Function  IsOutRightLimit() : Boolean;
     Function  IsOutBottomLimit() : Boolean;
+    Function  Column() : Integer;
 
   end;
 
@@ -215,7 +216,7 @@ type
 
   Function TShape.IsOutRightLimit() : Boolean;
   begin
-    IsOutRightLimit := (Self.MaxX()*CELL_SIZE + Self.m_x)>NB_COLUMNS*CELL_SIZE;
+    IsOutRightLimit := (Self.MaxX()*CELL_SIZE + CELL_SIZE + Self.m_x)>NB_COLUMNS*CELL_SIZE;
   end;
 
   Function TShape.IsOutBottomLimit() : Boolean;
@@ -226,61 +227,69 @@ type
   Function TShape.HitGround(board : PTBoard) : Boolean;
   var
     i,x,y : integer;
-    Function Hit(x:Integer;y:Integer) : Boolean;
+    ix1,iy1 : Integer;
+    Function Hit(x1:Integer;y1:Integer) : Boolean;
     var
        ix,iy : Integer;
     begin
-       ix := Trunc(x/CELL_SIZE);
-       iy := Trunc(y/CELL_SIZE);
+       ix := Trunc(x1/CELL_SIZE);
+       iy := Trunc(y1/CELL_SIZE);
        if (ix>=0) and (ix<NB_COLUMNS) and (iy>=0) and (iy<NB_ROWS) then
          begin
-              Hit := board^[ix+iy*NB_COLUMNS]<>0
+              Hit := board^[ix+iy*NB_COLUMNS]<>0;
+              Writeln(Hit);
          end
        else
-           Hit := false;
+         Hit := false;
     end;
   begin
 
+    for i:=0 to 3 do
+      begin
+
+        x := Self.v[i].x*CELL_SIZE + Self.m_x + 1;
+        y := Self.v[i].y*CELL_SIZE + Self.m_y + 1;
+        if Hit(x,y) then
+        begin
+          HitGround := true;
+          exit;
+        end;
+
+        x := Self.v[i].x*CELL_SIZE + CELL_SIZE - 1 + Self.m_x;
+        y := Self.v[i].y*CELL_SIZE + Self.m_y + 1;
+        if Hit(x,y) then
+        begin
+          HitGround := true;
+          exit;
+        end;
+
+        x := Self.v[i].x*CELL_SIZE + CELL_SIZE - 1 + Self.m_x;
+        y := Self.v[i].y*CELL_SIZE + CELL_SIZE - 1 + Self.m_y;
+        if Hit(x,y) then
+        begin
+          HitGround := true;
+          exit;
+        end;
+
+        x := Self.v[i].x*CELL_SIZE + Self.m_x + 1;
+        y := Self.v[i].y*CELL_SIZE + CELL_SIZE - 1 + Self.m_y;
+        if Hit(x,y) then
+        begin
+          HitGround := true;
+          exit;
+        end;
+
+      end;
+
     HitGround := false;
 
-    for i:=0 to 3 do
-    begin
-
-      x := Self.v[i].x*CELL_SIZE + Self.m_x + 1;
-      y := Self.v[i].y*CELL_SIZE + Self.m_y + 1;
-      if Hit(x,y) then
-      begin
-        HitGround := true;
-        exit;
-      end;
-
-      x := Self.v[i].x*CELL_SIZE + CELL_SIZE - 1 + Self.m_x;
-      y := Self.v[i].y*CELL_SIZE + Self.m_y + 1;
-      if Hit(x,y) then
-      begin
-        HitGround := true;
-        exit;
-      end;
-
-      x := Self.v[i].x*CELL_SIZE + CELL_SIZE - 1 + Self.m_x;
-      y := Self.v[i].y*CELL_SIZE + CELL_SIZE - 1 + Self.m_y;
-      if Hit(x,y) then
-      begin
-        HitGround := true;
-        exit;
-      end;
-
-      x := Self.v[i].x*CELL_SIZE + Self.m_x + 1;
-      y := Self.v[i].y*CELL_SIZE + CELL_SIZE - 1 + Self.m_y;
-      if Hit(x,y) then
-      begin
-        HitGround := true;
-        exit;
-      end;
-
-    end;
-
   end;
+
+  Function TShape.Column() : Integer;
+  begin
+    Column := Trunc(Self.m_x/CELL_SIZE);
+  end;
+
 
 
 

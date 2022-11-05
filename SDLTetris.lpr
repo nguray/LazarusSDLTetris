@@ -70,8 +70,9 @@ type
     score      : Integer;
     playerName : String;
     mode       : GameMode;
-    VeloH      : Integer;
-    fFastDown  : boolean;
+    veloH      : Integer;
+    fFastDown  : Boolean;
+    fPause     : Boolean;
     fDropTetromino : boolean;
     event          : TSDL_Event;
     processEvent   : TMethodPtr;
@@ -81,6 +82,10 @@ type
     bag     : Array [1..7] of Integer;
     hightScores  : TList;
     idHightScore : Integer;
+
+    horizontalMove         : Integer;
+    horizontalStartColumn : Integer;
+    nbCompletedLines      : Integer;
 
     dictKeys : TDictKeys;
 
@@ -93,7 +98,7 @@ type
     Procedure Draw(screen: PSDL_Renderer);
     Procedure DrawStandby(screen: PSDL_Renderer);
 
-    Function EraseCompletedLines():Integer;
+    Procedure EraseFirstCompletedLine();
     Function ComputeScore(nbL:Integer):Integer;
     Procedure DrawScore(screen: PSDL_Renderer);
     Function IsGameOver():boolean;
@@ -114,6 +119,8 @@ type
     Procedure SetHightScore(idScore : Integer; playerNm : String;playerScore : Integer );
     Procedure SetHightScoreName(idScore : Integer; playerNm : String);
     Procedure InsertHightScore(idScore : Integer;playerNm : String;playerScore : Integer );
+    Function  ComputeCompletedLines() : Integer;
+
   end;
 
   function compareByScore(Item1, Item2 : Pointer) : Integer;
@@ -142,9 +149,13 @@ type
     Self.idHightScore := -1;
     Self.score := 0;
     Self.mode  := STAND_BY;
-    Self.VeloH := 0;
+    Self.veloH := 0;
+    Self.horizontalMove := 0;
+    Self.horizontalStartColumn := 0;
     Self.fFastDown := false;
+    Self.fPause := false;
     Self.fDropTetromino := false;
+    Self.nbCompletedLines := 0;
 
     Self.processEvent := @Self.ProcessEventStandBy;
 
@@ -444,26 +455,53 @@ type
     ComputeScore := sc;
   end;
 
+
+  Function TGame.ComputeCompletedLines() : Integer;
+  var
+    r,c        : Integer;
+    fCompleted : Boolean;
+    nbLines    : Integer;
+  begin
+    nbLines := 0;
+    for r:=0 to (NB_ROWS-1) do
+      begin
+        fCompleted := true;
+        for c:=0 to (NB_COLUMNS-1) do
+          begin
+            if Self.board[r*NB_COLUMNS + c]=0 then
+              begin
+                fCompleted := false;
+                break;
+              end;
+          end;
+        if fCompleted then nbLines += 1;
+      end;
+      ComputeCompletedLines := nbLines;
+  end;
+
   Procedure TGame.FreezeTetromino();
   var
-    i,x,y,nbL : integer;
-    strScore : string = '';
+    i,x,y,nbL : Integer;
+    ix,iy     : Integer;
+    strScore  : String = '';
   begin
+    ix := Trunc((Self.curTetromino.m_x+1)/CELL_SIZE);
+    iy := Trunc((Self.curTetromino.m_y+1)/CELL_SIZE);
     for i:=0 to 3 do
     begin
-      x := Self.curTetromino.v[i].x + Self.curTetromino.m_x;
-      y := Self.curTetromino.v[i].y + Self.curTetromino.m_y;
+      x := Self.curTetromino.v[i].x + ix;
+      y := Self.curTetromino.v[i].y + iy;
       Self.board[x+y*NB_COLUMNS] := Self.curTetromino.m_type;
     end;
-    nbL := Self.EraseCompletedLines();
-    if nbL>0 then
+    Self.nbCompletedLines := Self.ComputeCompletedLines();
+    if Self.nbCompletedLines>0 then
     begin
-      WriteLn('Score  ',Self.score);
-      Self.score += Self.ComputeScore(nbL);
-      FmtStr(strScore,'SCORE : %10.8d',[Self.score]);
-      WriteLn(strScore);
-      if Mix_PlayChannel(-1, Sound, 0) < 0 then Writeln(SDL_GetError);
+      //WriteLn('Score  ',Self.score);
+      Self.score += Self.ComputeScore(Self.nbCompletedLines);
+      //FmtStr(strScore,'SCORE : %10.8d',[Self.score]);
+      //WriteLn(strScore);
     end;
+
   end;
 
   Procedure TGame.Draw(screen: PSDL_Renderer);
@@ -741,7 +779,7 @@ type
       end;
   end;
 
-  Function TGame.EraseCompletedLines() : Integer;
+  Procedure TGame.EraseFirstCompletedLine();
   var
     fCompleted : Boolean;
     r,r1,c,nbL : Integer;
@@ -761,7 +799,6 @@ type
 
       if fCompleted then
         begin
-          nbL += 1;
           //--
           for r1:=r downto 1 do
           begin
@@ -770,11 +807,10 @@ type
               Self.board[r1*NB_COLUMNS+c]:=Self.board[(r1-1)*NB_COLUMNS+c];
             end;
           end;
+          break;
         end;
 
     end;
-
-    EraseCompletedLines := nbL;
 
   end;
 
@@ -821,6 +857,8 @@ type
           }
 
           case Self.event.key.keysym.sym of
+            SDLK_P:
+              Self.fPause := not (Self.fPause);
             SDLK_LEFT:
                 Self.VeloH := -1;
             SDLK_RIGHT:
@@ -1031,14 +1069,18 @@ var
 
   done : TSDL_bool = SDL_FALSE;
 
-  curTicks : comp;
-  ticks1   : comp;
-  ticks2   : comp;
+  curTicks    : comp;
+  startTicksV : comp;
+  startTicksH : comp;
+  ticks2      : comp;
 
   limit    : Integer;
   game     : TGame;
   i        : Integer;
   fMove    : Boolean;
+  backupX  : Integer;
+
+  strMsg   : String;
 
 begin
 
@@ -1089,8 +1131,9 @@ begin
 
   game := TGame.create();
 
-  ticks1 := TimeStampToMSecs(DateTimeToTimeStamp (Now));
-  ticks2 := ticks1;
+  startTicksV := TimeStampToMSecs(DateTimeToTimeStamp (Now));
+  ticks2 := startTicksV;
+  startTicksH := startTicksV;
 
   { Loop, getting joystick events! }
   while done = SDL_FALSE do
@@ -1117,89 +1160,186 @@ begin
     end;
 
     //-- Update Game State
-    if game.mode = PLAY then
+    if (game.mode = PLAY) and (not game.fPause) then
     begin
       curTicks := TimeStampToMSecs(DateTimeToTimeStamp (Now));
-      if (curTicks-ticks1)>100 then
-        begin
-          ticks1 := curTicks;
-          game.curTetromino.m_x += game.VeloH;
-          if game.curTetromino.IsInBoard()=false then
-            begin
-              game.curTetromino.m_x -= game.VeloH;
-            end
-          else
-            if game.curTetromino.HitGround(@game.board) then
-              begin
-                game.curTetromino.m_x -= game.VeloH;
-              end;
-        end;
 
-      if game.fDropTetromino then
+      if (game.nbCompletedLines>0) then
+         begin
+         if (curTicks-startTicksV)>100 then
+           begin
+             startTicksV := curTicks;
+             game.nbCompletedLines -= 1;
+             game.EraseFirstCompletedLine();
+             if Mix_PlayChannel(-1, game.Sound, 0) < 0 then Writeln(SDL_GetError);
+           end;
+         end
+      else if (game.horizontalMove<>0) then
+         begin
+           if (curTicks-startTicksH)>20 then
+             begin
+                 startTicksH := curTicks;
+                 for i:=0 to 3 do
+                   begin
+                     backupX := game.curTetromino.m_x;
+                     game.curTetromino.m_x += game.horizontalMove;
+
+                     if game.horizontalMove<0 then
+                       begin
+                       if game.curTetromino.IsOutLeftLimit() then
+                         begin
+                           game.curTetromino.m_x := backupX;
+                           game.horizontalMove := 0;
+                           break;
+                         end;
+                       end
+                     else
+                        if game.horizontalMove>0 then
+                          begin
+                            if game.curTetromino.IsOutRightLimit() then
+                              begin
+                                game.curTetromino.m_x := backupX;
+                                game.horizontalMove := 0;
+                                break;
+                              end
+                          end;
+                     if game.curTetromino.HitGround(@game.board) then
+                       begin
+                         game.curTetromino.m_x := backupX;
+                         game.horizontalMove := 0;
+                         break;
+                       end;
+                     //FmtStr(strMsg,'%d <=> %d',[game.horizontalStartColumn,game.curTetromino.Column()]);
+                     //Writeln(strMsg);
+                     if game.horizontalStartColumn<>game.curTetromino.Column() then
+                       begin
+                         startTicksH := curTicks;
+                         game.curTetromino.m_x := backupX;
+                         game.horizontalMove := 0;
+                         break;
+                       end;
+                 end
+             end
+         end
+      else if game.fDropTetromino then
         begin
-          ticks2 := curTicks;
-          game.curTetromino.m_y += 1;
-          if not game.curTetromino.IsInBoard() then
+
+          if (curTicks-startTicksV)>10 then
             begin
-             game.curTetromino.m_y -= 1;
-             game.FreezeTetromino();
-             game.curTetromino.Init(game.nextTetromino.m_type,5,1);
-             game.GenerateNextTetromino();
-             game.fDropTetromino := false;
-            end
-          else
-            if game.curTetromino.HitGround(@game.board) then
-              begin
-                game.curTetromino.m_y -= 1;
-                game.FreezeTetromino();
-                game.curTetromino.Init(game.nextTetromino.m_type,5,1);
-                game.GenerateNextTetromino();
-                game.fDropTetromino := false;
-              end;
+                 startTicksV := curTicks;
+                 for i:= 0 to 5 do
+                   begin
+                     //-- Move down to check
+                     game.curTetromino.m_y += 1;
+                     if game.curTetromino.HitGround(@game.board) then
+                       begin
+                         game.curTetromino.m_y -= 1;
+                         game.FreezeTetromino();
+                         game.curTetromino.Init(game.nextTetromino.m_type,6*CELL_SIZE,CELL_SIZE);
+                         game.GenerateNextTetromino();
+                         game.fDropTetromino := false;
+                       end
+                     else if game.curTetromino.IsOutBottomLimit() then
+                       begin
+                         game.curTetromino.m_y -= 1;
+                         game.FreezeTetromino();
+                         game.curTetromino.Init(game.nextTetromino.m_type,6*CELL_SIZE,CELL_SIZE);
+                         game.GenerateNextTetromino();
+                         game.fDropTetromino := false;
+                       end;
+                     if game.fDropTetromino then
+                       begin
+                         if (game.veloH<>0) then
+                           begin
+                             if (curTicks-startTicksH)>10 then
+                               begin
+                                 backupX := game.curTetromino.m_x;
+                                 game.curTetromino.m_x += game.veloH;
+                                 if game.curTetromino.IsOutLeftLimit() or game.curTetromino.IsOutRightLimit() then
+                                   begin
+                                        game.curTetromino.m_x := backupX;
+                                   end
+                                 else if game.curTetromino.HitGround(@game.board) then
+                                   begin
+                                      game.curTetromino.m_x := backupX;
+                                   end
+                                 else
+                                   begin
+                                      startTicksH := curTicks;
+                                      game.horizontalMove := game.veloH;
+                                      game.horizontalStartColumn := game.curTetromino.Column();
+                                      break;
+                                   end
+                               end;
+                           end;
+
+                       end;
+
+                   end;
+            end;
         end
       else
         begin
 
           if game.fFastDown then
-            limit := 10
+            limit := 15
           else
             limit := 25;
 
-          if (curTicks-ticks2)>limit then
+
+          if (curTicks-startTicksV)>limit then
           begin
 
-            ticks2 := curTicks;
+            startTicksV := curTicks;
 
-            for i:= 0 to 2 do
-            begin
+            for i:= 0 to 4 do
+              begin
 
-              game.curTetromino.m_y += 1;
-              fMove := true;
-              if game.curTetromino.HitGround(@game.board) then
-                 begin
+                game.curTetromino.m_y += 1;
+                fMove := true;
+                if game.curTetromino.HitGround(@game.board) then
+                   begin
+                        game.curTetromino.m_y -= 1;
+                        game.FreezeTetromino();
+                        game.curTetromino.Init(game.nextTetromino.m_type,6*CELL_SIZE,CELL_SIZE);
+                        game.GenerateNextTetromino();
+                        fMove := false;
+                   end
+                else if game.curTetromino.IsOutBottomLimit() then
+                   begin
                       game.curTetromino.m_y -= 1;
                       game.FreezeTetromino();
-                      game.curTetromino.Init(game.nextTetromino.m_type,5,1);
+                      game.curTetromino.Init(game.nextTetromino.m_type,6*CELL_SIZE,CELL_SIZE);
                       game.GenerateNextTetromino();
                       fMove := false;
-                 end
-              else
-              begin
-                  if game.curTetromino.IsOutBottomLimit() then
-                     begin
-                          game.curTetromino.m_y -= 1;
-                          game.FreezeTetromino();
-                          game.curTetromino.Init(game.nextTetromino.m_type,5,1);
-                          game.GenerateNextTetromino();
-                         fMove := false;
-                     end;
+                   end;
+
+                if fMove and (game.veloH<>0)then
+                  begin
+                    if (curTicks-startTicksH)>10 then
+                       begin
+                            backupX := game.curTetromino.m_x;
+                            game.curTetromino.m_x += game.veloH;
+
+                            if game.curTetromino.IsOutLeftLimit() then
+                               game.curTetromino.m_x := backupX
+                            else
+                               if game.curTetromino.IsOutRightLimit() then
+                                  game.curTetromino.m_x := backupX
+                               else
+                                  if game.curTetromino.HitGround(@game.board) then
+                                    game.curTetromino.m_x := backupX
+                                  else
+                                    begin
+                                      startTicksH := curTicks;
+                                      game.horizontalMove := game.veloH;
+                                      game.horizontalStartColumn := game.curTetromino.Column();
+                                      break;
+                                    end;
+                       end
+                  end;
+
               end;
-              if fMove then
-                begin
-
-                end;
-
-            end;
 
           end;
 
