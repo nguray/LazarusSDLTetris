@@ -818,60 +818,62 @@ type
             when SDL doesn't service the event loop quickly.
           }
 
-          case Self.event.key.keysym.sym of
-            SDLK_P:
-              Self.fPause := not (Self.fPause);
-            SDLK_LEFT:
-              begin
-                Self.VeloH := -1;
-                Self.IsOutLRLimit := @Self.curTetromino.IsOutLeftLimit;
-              end;
-            SDLK_RIGHT:
-              begin
-                Self.VeloH := 1;
-                Self.IsOutLRLimit := @Self.curTetromino.IsOutRightLimit;
-              end;
-            SDLK_UP:
-              begin
-                if Self.curTetromino.m_type<>0 then
-                  begin
-                    Self.curTetromino.RotateLeft();
-                    if Self.curTetromino.HitGround(@Self.board) then
-                      begin
-                        //-- Undo Rotate
-                        Self.curTetromino.RotateRight();
-                      end
-                    else
-                      if Self.curTetromino.IsOutRightLimit() then
+          if Self.event.key._repeat=0 then
+            case Self.event.key.keysym.sym of
+              SDLK_P:
+                Self.fPause := not (Self.fPause);
+              SDLK_LEFT:
+                begin
+                  Self.VeloH := -1;
+                  Self.IsOutLRLimit := @Self.curTetromino.IsOutLeftLimit;
+                end;
+              SDLK_RIGHT:
+                begin
+                  Self.VeloH := 1;
+                  Self.IsOutLRLimit := @Self.curTetromino.IsOutRightLimit;
+                end;
+              SDLK_UP:
+                begin
+                  if Self.curTetromino.m_type<>0 then
+                    begin
+                      Self.curTetromino.RotateLeft();
+                      if Self.curTetromino.HitGround(@Self.board) then
                         begin
-                          backupX := Self.curTetromino.m_x;
-                          repeat
-                            Self.curTetromino.m_x -= 1
-                          until not Self.curTetromino.IsOutRightLimit();
-                          if  Self.curTetromino.HitGround(@Self.board) then
-                            begin
-                              Self.curTetromino.m_x := backupX;
-                              //-- Undo Rotate
-                              Self.curTetromino.RotateRight();
-                            end;
+                          //-- Undo Rotate
+                          Self.curTetromino.RotateRight();
                         end
                       else
-                        if Self.curTetromino.IsOutLeftLimit() then
+                        if Self.curTetromino.IsOutRightLimit() then
                           begin
                             backupX := Self.curTetromino.m_x;
                             repeat
-                              Self.curTetromino.m_x += 1
-                            until not Self.curTetromino.IsOutLeftLimit();
+                              Self.curTetromino.m_x -= 1
+                            until not Self.curTetromino.IsOutRightLimit();
                             if  Self.curTetromino.HitGround(@Self.board) then
                               begin
                                 Self.curTetromino.m_x := backupX;
                                 //-- Undo Rotate
                                 Self.curTetromino.RotateRight();
                               end;
-                          end;
-                  end;
+                          end
+                        else
+                          if Self.curTetromino.IsOutLeftLimit() then
+                            begin
+                              backupX := Self.curTetromino.m_x;
+                              repeat
+                                Self.curTetromino.m_x += 1
+                              until not Self.curTetromino.IsOutLeftLimit();
+                              if  Self.curTetromino.HitGround(@Self.board) then
+                                begin
+                                  Self.curTetromino.m_x := backupX;
+                                  //-- Undo Rotate
+                                  Self.curTetromino.RotateRight();
+                                end;
+                            end;
+                    end;
 
-              end;
+                end;
+
             SDLK_DOWN:
               begin
                 Self.fFastDown := true;
@@ -898,12 +900,10 @@ type
             SDLK_LEFT:
               begin
                 Self.VeloH := 0;
-                Self.IsOutLRLimit := @Self.curTetromino.IsAlwaysOutLimit;
               end;
             SDLK_RIGHT:
               begin
                 Self.VeloH := 0;
-                Self.IsOutLRLimit := @Self.curTetromino.IsAlwaysOutLimit;
               end;
             SDLK_DOWN:
               begin
@@ -1180,11 +1180,6 @@ begin
                      backupX := game.curTetromino.m_x;
                      game.curTetromino.m_x += game.horizontalMove;
 
-                     if game.horizontalMove<0 then
-                       game.IsOutLRLimit := @game.curTetromino.IsOutLeftLimit
-                     else
-                       game.IsOutLRLimit := @game.curTetromino.IsOutRightLimit;
-
                      if game.IsOutLRLimit() then
                        begin
                           game.curTetromino.m_x := backupX;
@@ -1320,6 +1315,7 @@ begin
 
           if game.IsGameOver() then
             begin
+              game.curTetromino.m_type := 0;
               //-- Check Hight Score
               game.idHightScore := game.IsHightScore(game.score);
               if game.idHightScore>=0 then
@@ -1332,7 +1328,6 @@ begin
                 end
               else
                 begin
-                  game.curTetromino.m_type := 0;
                   game.mode := GAME_OVER;
                   game.processEvent:=@game.ProcessEventGameOver;
                   game.ClearBoard();
