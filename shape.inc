@@ -10,16 +10,15 @@ type
     Procedure RotateLeft();
     Procedure RotateRight();
     Procedure Init(typ,ix,iy : Integer);
-    Function  IsInBoard() : Boolean;
     Function  HitGround(board : PTBoard) : Boolean;
     Function  MaxX() : Integer;
     Function  MinX() : Integer;
     Function  MaxY() : Integer;
     Function  IsOutLeftLimit() : Boolean;
     Function  IsOutRightLimit() : Boolean;
+    Function  IsAlwaysOutLimit() : Boolean;
     Function  IsOutBottomLimit() : Boolean;
     Function  Column() : Integer;
-
   end;
 
   Constructor TShape.create(t,ix,iy : Integer);
@@ -110,7 +109,7 @@ type
 
     sx := LEFT + Self.m_x;
     sy := TOP + Self.m_y;
-    for i:=0 to 3 do
+    for i:=Low(Self.v) to High(Self.v) do
     begin
          sdlRect1.x := Self.v[i].x*CELL_SIZE + sx + 1;
          sdlRect1.y := Self.v[i].y*CELL_SIZE + sy + 1;
@@ -125,7 +124,7 @@ type
   var
     i,x,y : integer;
   begin
-    for i:=0 to 3 do
+    for i:=Low(Self.v) to High(Self.v) do
     begin
       x := Self.v[i].y;
       y := -Self.v[i].x;
@@ -139,7 +138,7 @@ type
   var
     i,x,y : integer;
   begin
-    for i:=0 to 3 do
+    for i:=Low(Self.v) to High(Self.v) do
     begin
       x := -Self.v[i].y;
       y := Self.v[i].x;
@@ -191,24 +190,6 @@ type
     MaxY := maxVal;
   end;
 
-
-  Function TShape.IsInBoard() : Boolean;
-  var
-    i,x,y : integer;
-  begin
-    IsInBoard := true;
-    for i:=0 to 3 do
-    begin
-      x := Self.v[i].x + Self.m_x;
-      y := Self.v[i].y + Self.m_y;
-      if (x<0) or (x>=NB_COLUMNS) or (y>=NB_ROWS) then
-        begin
-          IsInBoard := false;
-          break;
-        end;
-    end;
-  end;
-
   Function TShape.IsOutLeftLimit() : Boolean;
   begin
     IsOutLeftLimit := (Self.MinX()*CELL_SIZE + Self.m_x)<0;
@@ -216,12 +197,17 @@ type
 
   Function TShape.IsOutRightLimit() : Boolean;
   begin
-    IsOutRightLimit := (Self.MaxX()*CELL_SIZE + CELL_SIZE + Self.m_x)>NB_COLUMNS*CELL_SIZE;
+    Result := (Self.MaxX()*CELL_SIZE + CELL_SIZE + Self.m_x)>NB_COLUMNS*CELL_SIZE;
   end;
 
   Function TShape.IsOutBottomLimit() : Boolean;
   begin
-    IsOutBottomLimit := (Self.MaxY()*CELL_SIZE + CELL_SIZE+ Self.m_y)>NB_ROWS*CELL_SIZE;
+    Result := (Self.MaxY()*CELL_SIZE + CELL_SIZE+ Self.m_y)>NB_ROWS*CELL_SIZE;
+  end;
+
+  Function TShape.IsAlwaysOutLimit() : Boolean;
+  begin
+    Result := true;
   end;
 
   Function TShape.HitGround(board : PTBoard) : Boolean;

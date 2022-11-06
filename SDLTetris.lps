@@ -9,26 +9,23 @@
         <Filename Value="SDLTetris.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="855"/>
-        <CursorPos Y="875"/>
-        <UsageCount Value="79"/>
+        <TopLine Value="1348"/>
+        <CursorPos X="38" Y="64"/>
+        <UsageCount Value="81"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="tvector2i.inc"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
-        <CursorPos X="15" Y="2"/>
-        <UsageCount Value="67"/>
+        <UsageCount Value="69"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="shape.inc"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="7"/>
-        <CursorPos X="51" Y="251"/>
-        <UsageCount Value="46"/>
+        <UsageCount Value="48"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -72,58 +69,6 @@
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1121" TopLine="1105"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="965" TopLine="944"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="968" TopLine="944"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1379" TopLine="1351"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="249" TopLine="228"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="250" TopLine="228"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="251" TopLine="228"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="252" TopLine="228"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="253" TopLine="228"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="1379" TopLine="1351"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="249" TopLine="228"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="250" TopLine="228"/>
-      </Position>
-      <Position>
-        <Filename Value="SDLTetris.lpr"/>
-        <Caret Line="251" TopLine="228"/>
-      </Position>
       <Position>
         <Filename Value="SDLTetris.lpr"/>
         <Caret Line="252" TopLine="228"/>
@@ -191,6 +136,58 @@
       <Position>
         <Filename Value="SDLTetris.lpr"/>
         <Caret Line="1116" TopLine="1094"/>
+      </Position>
+      <Position>
+        <Filename Value="shape.inc"/>
+        <Caret Line="114" Column="64" TopLine="82"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="81" Column="35" TopLine="61"/>
+      </Position>
+      <Position>
+        <Filename Value="shape.inc"/>
+        <Caret Line="21" Column="36"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="829" Column="34" TopLine="817"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="832" Column="81" TopLine="803"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="826" Column="17" TopLine="807"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="174" Column="55" TopLine="139"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="170" Column="62" TopLine="144"/>
+      </Position>
+      <Position>
+        <Filename Value="shape.inc"/>
+        <Caret Line="18" Column="48"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="1023" Column="51" TopLine="999"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="196" TopLine="394"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="51" Column="10" TopLine="40"/>
+      </Position>
+      <Position>
+        <Filename Value="SDLTetris.lpr"/>
+        <Caret Line="49" Column="14" TopLine="40"/>
       </Position>
     </JumpHistory>
     <RunParams>

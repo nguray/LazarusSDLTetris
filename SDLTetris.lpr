@@ -42,6 +42,7 @@ type
 
   TMethodPtr = procedure(done : PSDL_bool) of object;
   TFuncPtr = function():integer of object;
+  TFuncBoolPtr = function(): Boolean of object;
 
   TDictKeys  = specialize TFPGMap<Integer, String>;
 
@@ -77,17 +78,19 @@ type
     fDropTetromino : boolean;
     event          : TSDL_Event;
     processEvent   : TMethodPtr;
+    IsOutLRLimit   : TFuncBoolPtr;
+
     curTetromino   : TShape;
     nextTetromino  : TShape;
-    ttfFont : PTTF_Font;
+    ttfFont        : PTTF_Font;
     tetrisBag      : Array of Integer;
-    idTetrisBag  : Integer;
-    hightScores  : TList;
-    idHightScore : Integer;
+    idTetrisBag    : Integer;
+    hightScores    : TList;
+    idHightScore   : Integer;
 
     horizontalMove         : Integer;
-    horizontalStartColumn : Integer;
-    nbCompletedLines      : Integer;
+    horizontalStartColumn  : Integer;
+    nbCompletedLines       : Integer;
 
     dictKeys : TDictKeys;
 
@@ -163,6 +166,8 @@ type
     Self.nextTetromino := TShape.create(Self.TetrisRandomizer(),(NB_COLUMNS+3)*CELL_SIZE,7*CELL_SIZE);
 
     Self.ClearBoard();
+
+    Self.IsOutLRLimit := @Self.curTetromino.IsAlwaysOutLimit;
 
     hightScores := TList.create();
     for i := 0 to 9 do
@@ -817,9 +822,15 @@ type
             SDLK_P:
               Self.fPause := not (Self.fPause);
             SDLK_LEFT:
+              begin
                 Self.VeloH := -1;
+                Self.IsOutLRLimit := @Self.curTetromino.IsOutLeftLimit;
+              end;
             SDLK_RIGHT:
+              begin
                 Self.VeloH := 1;
+                Self.IsOutLRLimit := @Self.curTetromino.IsOutRightLimit;
+              end;
             SDLK_UP:
               begin
                 if Self.curTetromino.m_type<>0 then
@@ -887,10 +898,12 @@ type
             SDLK_LEFT:
               begin
                 Self.VeloH := 0;
+                Self.IsOutLRLimit := @Self.curTetromino.IsAlwaysOutLimit;
               end;
             SDLK_RIGHT:
               begin
                 Self.VeloH := 0;
+                Self.IsOutLRLimit := @Self.curTetromino.IsAlwaysOutLimit;
               end;
             SDLK_DOWN:
               begin
@@ -1071,7 +1084,7 @@ begin
     Halt(0);
   end;
 
-  screen := SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED + SDL_RENDERER_PRESENTVSYNC);
+  screen := SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED or SDL_RENDERER_PRESENTVSYNC);
 
   if screen = nil then
   begin
@@ -1168,24 +1181,16 @@ begin
                      game.curTetromino.m_x += game.horizontalMove;
 
                      if game.horizontalMove<0 then
-                       begin
-                       if game.curTetromino.IsOutLeftLimit() then
-                         begin
-                           game.curTetromino.m_x := backupX;
-                           game.horizontalMove := 0;
-                           break;
-                         end;
-                       end
+                       game.IsOutLRLimit := @game.curTetromino.IsOutLeftLimit
                      else
-                        if game.horizontalMove>0 then
-                          begin
-                            if game.curTetromino.IsOutRightLimit() then
-                              begin
-                                game.curTetromino.m_x := backupX;
-                                game.horizontalMove := 0;
-                                break;
-                              end
-                          end;
+                       game.IsOutLRLimit := @game.curTetromino.IsOutRightLimit;
+
+                     if game.IsOutLRLimit() then
+                       begin
+                          game.curTetromino.m_x := backupX;
+                          game.horizontalMove := 0;
+                          break;
+                       end;
                      if game.curTetromino.HitGround(@game.board) then
                        begin
                          game.curTetromino.m_x := backupX;
@@ -1236,20 +1241,20 @@ begin
                                begin
                                  backupX := game.curTetromino.m_x;
                                  game.curTetromino.m_x += game.veloH;
-                                 if game.curTetromino.IsOutLeftLimit() or game.curTetromino.IsOutRightLimit() then
+                                 if game.IsOutLRLimit() then
                                    begin
-                                        game.curTetromino.m_x := backupX;
+                                     game.curTetromino.m_x := backupX;
                                    end
                                  else if game.curTetromino.HitGround(@game.board) then
                                    begin
-                                      game.curTetromino.m_x := backupX;
+                                     game.curTetromino.m_x := backupX;
                                    end
                                  else
                                    begin
-                                      startTicksH := curTicks;
-                                      game.horizontalMove := game.veloH;
-                                      game.horizontalStartColumn := game.curTetromino.Column();
-                                      break;
+                                     startTicksH := curTicks;
+                                     game.horizontalMove := game.veloH;
+                                     game.horizontalStartColumn := game.curTetromino.Column();
+                                     break;
                                    end
                                end;
                            end;
@@ -1294,21 +1299,18 @@ begin
                             backupX := game.curTetromino.m_x;
                             game.curTetromino.m_x += game.veloH;
 
-                            if game.curTetromino.IsOutLeftLimit() then
-                               game.curTetromino.m_x := backupX
+                            if game.IsOutLRLimit() then
+                              game.curTetromino.m_x := backupX
                             else
-                               if game.curTetromino.IsOutRightLimit() then
-                                  game.curTetromino.m_x := backupX
-                               else
-                                  if game.curTetromino.HitGround(@game.board) then
-                                    game.curTetromino.m_x := backupX
-                                  else
-                                    begin
-                                      startTicksH := curTicks;
-                                      game.horizontalMove := game.veloH;
-                                      game.horizontalStartColumn := game.curTetromino.Column();
-                                      break;
-                                    end;
+                              if game.curTetromino.HitGround(@game.board) then
+                                game.curTetromino.m_x := backupX
+                              else
+                                begin
+                                  startTicksH := curTicks;
+                                  game.horizontalMove := game.veloH;
+                                  game.horizontalStartColumn := game.curTetromino.Column();
+                                  break;
+                                end;
                        end
                   end;
 
