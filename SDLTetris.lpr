@@ -44,7 +44,7 @@ type
   TFuncPtr = function():integer of object;
   TFuncBoolPtr = function(): Boolean of object;
 
-  TDictKeys  = specialize TFPGMap<Integer, String>;
+  TDictKeys  =  specialize TFPGMap<Integer, String>;
 
 {$I tvector2i.inc}
 
@@ -1047,11 +1047,11 @@ var
   Music : PMix_Music;
   Sound: PMix_Chunk;
 
-  done : TSDL_bool = SDL_FALSE;
+  startTicksH : Integer;
+  startTicksV : Integer;
+  curTicks    : Integer;
 
-  curTicks    : comp;
-  startTicksV : comp;
-  startTicksH : comp;
+  done : TSDL_bool = SDL_FALSE;
 
   game     : TGame;
   i        : Integer;
@@ -1115,8 +1115,8 @@ begin
   game := TGame.create();
   //game.score := 1000;
 
-  startTicksV := TimeStampToMSecs(DateTimeToTimeStamp (Now));
-  startTicksH := startTicksV;
+  startTicksH := SDL_GetTicks();
+  startTicksV := startTicksH;
 
   { Loop, getting joystick events! }
   while done = SDL_FALSE do
@@ -1158,7 +1158,8 @@ begin
     //-- Update Game State
     if (game.mode = PLAY) and (not game.fPause) then
     begin
-      curTicks := TimeStampToMSecs(DateTimeToTimeStamp (Now));
+
+      curTicks := SDL_GetTicks();
 
       if (game.nbCompletedLines>0) then
          begin
